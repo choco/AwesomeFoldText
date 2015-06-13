@@ -1,4 +1,4 @@
-function! s:GenerateFoldText()
+function! GenerateFoldText()
   "get first non-blank line
   let fs = v:foldstart
   while getline(fs) =~ '^\s*$' | let fs = nextnonblank(fs + 1)
@@ -36,7 +36,7 @@ function! s:GenerateFoldText()
   return text . expansionString . info
 endfunction
 
-function! s:GetSignsCount()
+function! GetSignsCount()
   let lang = v:lang
   language message C
   redir => signlist
