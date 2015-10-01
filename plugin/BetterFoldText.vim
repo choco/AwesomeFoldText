@@ -8,7 +8,7 @@ function! GenerateFoldText()
   else
     let line = substitute(getline(fs), '\t', repeat(' ', &tabstop), 'g')
   endif
-  let text = ' ' . substitute(line, '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
+  let text = '|-- ' . substitute(line, '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
 
   " Foldtext can't display tabs so replace them with spaces
   let indent = indent(v:foldstart)
