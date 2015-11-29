@@ -6,6 +6,16 @@ let g:NeatFoldTextCountSurroundRight = ' |'
 let g:NeatFoldTextFoldLevelSymbol = '+-'
 let g:NeatFoldTextFoldLevelScale = 1
 
+function s:GetSignsCount()
+  let lang = v:lang
+  language message C
+  redir => signlist
+    silent! execute 'sign place buffer='. bufnr('%')
+  redir END
+  silent! execute 'language message' lang
+  return len(split(signlist, '\n'))-1
+endfunction
+
 function s:IsCommentBlock() "{{{
     return match(getline(v:foldstart), '^\s*/\*\+') != -1
 endfunction
@@ -62,7 +72,7 @@ function s:FormatLinesCount() "{{{
   if winwidth(0) < 60
       let countText = printf("%4s", foldlen + 1)
   else
-      let countText = printf("%10s", foldlen . ' lines' . percent)
+      let countText = printf("%16s", foldlen . ' lines' . percent)
   endif
 
   let countText = g:NeatFoldTextCountSurroundLeft . countText . g:NeatFoldTextCountSurroundRight
@@ -108,13 +118,13 @@ function s:FormatSecondPart() "{{{
   let linesCountText = s:FormatLinesCount()
   let foldLevelText = s:FormatFoldLevel()
 
-  return foldLevelText . linesCountText . repeat(g:NeatFoldTextFillChar, 8)
+  return foldLevelText . linesCountText . repeat(g:NeatFoldTextFillChar, 2)
 endfunction
 
 function! AwesomeFoldText() "{{{
   let firstPartText = s:FormatFirstPart()
   let secondPartText = s:FormatSecondPart()
-  let fillLength = winwidth(0) - strwidth(firstPartText . secondPartText) + &foldcolumn
+  let fillLength = winwidth(0) - strwidth(firstPartText . secondPartText) - &foldcolumn - (&number ? &numberwidth : 0) - (s:GetSignsCount() ? 2 : 0)
   return firstPartText . repeat(g:NeatFoldTextFillChar, fillLength) . secondPartText
 endfunction
 "}}}
