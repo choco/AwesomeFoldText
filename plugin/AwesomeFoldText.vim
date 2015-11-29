@@ -1,10 +1,24 @@
-let g:NeatFoldTextSymbol = '▸'
-let g:NeatFoldTextFillChar = '·'
-let g:NeatFoldTextIndent = 1
-let g:NeatFoldTextCountSurroundLeft = '| '
-let g:NeatFoldTextCountSurroundRight = ' |'
-let g:NeatFoldTextFoldLevelSymbol = '+-'
-let g:NeatFoldTextFoldLevelScale = 1
+if !exists('g:AwesomeFoldTextSymbol')
+  let g:AwesomeFoldTextSymbol = '▸'
+endif
+if !exists('g:AwesomeFoldTextFillChar')
+  let g:AwesomeFoldTextFillChar = '·'
+endif
+if !exists('g:AwesomeFoldTextIndent')
+  let g:AwesomeFoldTextIndent = 1
+endif
+if !exists('g:AwesomeFoldTextCountSurroundLeft')
+  let g:AwesomeFoldTextCountSurroundLeft = '| '
+endif
+if !exists('g:AwesomeFoldTextCountSurroundRight')
+  let g:AwesomeFoldTextCountSurroundRight = ' |'
+endif
+if !exists('g:AwesomeFoldTextFoldLevelSymbol')
+  let g:AwesomeFoldTextFoldLevelSymbol = '+-'
+endif
+if !exists('g:AwesomeFoldTextFoldLevelScale')
+  let g:AwesomeFoldTextFoldLevelScale = 1
+endif
 
 function s:GetSignsCount()
   let lang = v:lang
@@ -75,14 +89,14 @@ function s:FormatLinesCount() "{{{
       let countText = printf("%16s", foldlen . ' lines' . percent)
   endif
 
-  let countText = g:NeatFoldTextCountSurroundLeft . countText . g:NeatFoldTextCountSurroundRight
+  let countText = g:AwesomeFoldTextCountSurroundLeft . countText . g:AwesomeFoldTextCountSurroundRight
 
   return countText
 endfunction
 "}}}
 
 function s:IndentFold() "{{{
-    if g:NeatFoldTextIndent == 1
+    if g:AwesomeFoldTextIndent == 1
         return repeat(' ', indent(v:foldstart))
     else
         return ''
@@ -91,7 +105,7 @@ endfunction
 "}}}
 
 function s:FormatFoldLevel() "{{{
-    return repeat(g:NeatFoldTextFoldLevelSymbol, v:foldlevel * g:NeatFoldTextFoldLevelScale)
+    return repeat(g:AwesomeFoldTextFoldLevelSymbol, v:foldlevel * g:AwesomeFoldTextFoldLevelScale)
 endfunction
 "}}}
 
@@ -107,7 +121,7 @@ endfunction
 "}}}
 
 function s:FormatFirstPart() "{{{
-  let startText = s:IndentFold() . g:NeatFoldTextSymbol . s:GetFoldInfo()
+  let startText = s:IndentFold() . g:AwesomeFoldTextSymbol . s:GetFoldInfo()
   let startText = s:CutText(startText)
 
   return startText
@@ -118,14 +132,14 @@ function s:FormatSecondPart() "{{{
   let linesCountText = s:FormatLinesCount()
   let foldLevelText = s:FormatFoldLevel()
 
-  return foldLevelText . linesCountText . repeat(g:NeatFoldTextFillChar, 2)
+  return foldLevelText . linesCountText . repeat(g:AwesomeFoldTextFillChar, 2)
 endfunction
 
 function! AwesomeFoldText() "{{{
   let firstPartText = s:FormatFirstPart()
   let secondPartText = s:FormatSecondPart()
   let fillLength = winwidth(0) - strwidth(firstPartText . secondPartText) - &foldcolumn - (&number ? &numberwidth : 0) - (s:GetSignsCount() ? 2 : 0)
-  return firstPartText . repeat(g:NeatFoldTextFillChar, fillLength) . secondPartText
+  return firstPartText . repeat(g:AwesomeFoldTextFillChar, fillLength) . secondPartText
 endfunction
 "}}}
 
