@@ -1,49 +1,122 @@
-function! GenerateFoldText()
-  "get first non-blank line
-  let fs = v:foldstart
-  while getline(fs) =~ '^\s*$' | let fs = nextnonblank(fs + 1)
-  endwhile
-  if fs > v:foldend
-    let line = getline(v:foldstart)
-  else
-    let line = substitute(getline(fs), '\t', repeat(' ', &tabstop), 'g')
-  endif
-  let text = '|-- ' . substitute(line, '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
+let g:NeatFoldTextSymbol = '▸'
+let g:NeatFoldTextFillChar = '·'
+let g:NeatFoldTextIndent = 1
+let g:NeatFoldTextCountSurroundLeft = '| '
+let g:NeatFoldTextCountSurroundRight = ' |'
+let g:NeatFoldTextFoldLevelSymbol = '+-'
+let g:NeatFoldTextFoldLevelScale = 1
 
-  " Foldtext can't display tabs so replace them with spaces
-  let indent = indent(v:foldstart)
-  let text   = substitute(text, '^\t\+', repeat(' ', indent), '')
+function s:IsCommentBlock() "{{{
+    return match(getline(v:foldstart), '^\s*/\*\+') != -1
+endfunction
+"}}}
 
-  " Replace content between {} with {...}
-  let startbrace = substitute(line, '^.*{[ \t]*$', '{', 'g')
-  if startbrace == '{'
-    let line     = getline(v:foldend)
-    let endbrace = substitute(line, '^[ \t]*}\(.*\)$', '}', 'g')
-    if endbrace == '}'
-      let text .= substitute(line, '^[ \t]*}\(.*\)$', '...}\1', 'g')
+function s:FoldMarkerIsOnSeparateLine() "{{{
+    let foldStartMarker = matchstr(&foldmarker, '^[^,]*')
+    return match(getline(v:foldstart), '^\s*["#/\*]*\s*' . foldStartMarker . 'd*\s*["#/\*]*$', 'g') != -1
+endfunction
+"}}}
+
+function s:FilterInfo(text) "{{{
+    let foldStartMarker = matchstr(&foldmarker, '^[^,]*')
+    return substitute(a:text, '^\s*["#/\*]*\s*\|\s*["#/\*]*\s*' . foldStartMarker .'\d*\s*', '', 'g')
+endfunction
+"}}}
+
+function s:FoldStartsOnBracket() "{{{
+    return match(getline(v:foldstart), '^\s*{\s*$') != -1
+endfunction
+"}}}
+
+function s:GetFoldInfo() "{{{
+  let info = ''
+  " Check if multiline comments start with '/*' or '/**' on a separate line.
+  if s:IsCommentBlock()
+    if match(getline(v:foldstart), '^\s*/\*\+\s*$') != -1
+      " Use the next line in the comment block, and add the '/*' or '/**'
+      " so that we know it's a block of comments or doc.
+      let info = substitute(getline(v:foldstart), '\s*', '', 'g') . ' '
+      let info = info . substitute(getline(v:foldstart + 1), '^\s*\*\+\s*', '', 'g')
+    else
+      let info = getline(v:foldstart)
     endif
-  endif
-  let foldlen = v:foldend - v:foldstart + 1
-  let percent = printf("[%.1f", (foldlen * 1.0)/line('$') * 100) . "%] "
-  let info    = " " . foldlen . " lines " . percent . repeat('+--', v:foldlevel) . '|'
-  let w = winwidth(0) - &foldcolumn - (&number ? &numberwidth : 0) - (GetSignsCount() ? 2 : 0)
-  " truncate foldtext according to window width
-  if exists("*strwdith")
-    let expansionString = repeat(' ', w - strwidth(text . info))
+  elseif s:FoldMarkerIsOnSeparateLine()
+    let info = getline(v:foldstart + 1)
+    let info = s:FilterInfo(info)
+  elseif s:FoldStartsOnBracket()
+    let info = '{ … }'
   else
-    let expansionString = repeat(' ', w - strlen(substitute(text . info, '.', 'x', 'g')))
+    let info = getline(v:foldstart)
+    let info = s:FilterInfo(info)
   endif
-  return text . expansionString . info
+  let info = ' ' . info . ' '
+
+  return info
+endfunction
+"}}}
+
+function s:FormatLinesCount() "{{{
+  let countText = ''
+  let foldlen = v:foldend - v:foldstart + 1
+  let percent = printf(" (%.1f", (foldlen * 1.0)/line('$') * 100) . "%)"
+  if winwidth(0) < 60
+      let countText = printf("%4s", foldlen + 1)
+  else
+      let countText = printf("%10s", foldlen . ' lines' . percent)
+  endif
+
+  let countText = g:NeatFoldTextCountSurroundLeft . countText . g:NeatFoldTextCountSurroundRight
+
+  return countText
+endfunction
+"}}}
+
+function s:IndentFold() "{{{
+    if g:NeatFoldTextIndent == 1
+        return repeat(' ', indent(v:foldstart))
+    else
+        return ''
+    endif
+endfunction
+"}}}
+
+function s:FormatFoldLevel() "{{{
+    return repeat(g:NeatFoldTextFoldLevelSymbol, v:foldlevel * g:NeatFoldTextFoldLevelScale)
+endfunction
+"}}}
+
+function s:CutText(text) "{{{
+    let maxwidth = winwidth(0) * 2 / 3
+
+    if strlen(a:text) > maxwidth
+        return strpart(a:text, 0, maxwidth - 2) . '… '
+    else
+        return strpart(a:text, 0, maxwidth)
+    endif
+endfunction
+"}}}
+
+function s:FormatFirstPart() "{{{
+  let startText = s:IndentFold() . g:NeatFoldTextSymbol . s:GetFoldInfo()
+  let startText = s:CutText(startText)
+
+  return startText
+endfunction
+"}}}
+
+function s:FormatSecondPart() "{{{
+  let linesCountText = s:FormatLinesCount()
+  let foldLevelText = s:FormatFoldLevel()
+
+  return foldLevelText . linesCountText . repeat(g:NeatFoldTextFillChar, 8)
 endfunction
 
-function! GetSignsCount()
-  let lang = v:lang
-  language message C
-  redir => signlist
-    silent! execute 'sign place buffer='. bufnr('%')
-  redir END
-  silent! execute 'language message' lang
-  return len(split(signlist, '\n'))-1
+function! AwesomeFoldText() "{{{
+  let firstPartText = s:FormatFirstPart()
+  let secondPartText = s:FormatSecondPart()
+  let fillLength = winwidth(0) - strwidth(firstPartText . secondPartText) + &foldcolumn
+  return firstPartText . repeat(g:NeatFoldTextFillChar, fillLength) . secondPartText
 endfunction
+"}}}
 
-set foldtext=GenerateFoldText()
+set foldtext=AwesomeFoldText()
