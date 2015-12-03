@@ -37,29 +37,29 @@ function! s:GetSignsCount() " {{{
 endfunction
 " }}}
 
-function! s:IsCommentBlock() "{{{
+function! s:IsCommentBlock() " {{{
     return match(getline(v:foldstart), '^\s*/\*\+') != -1
 endfunction
 " }}}
 
-function! s:FoldMarkerIsOnSeparateLine() "{{{
+function! s:FoldMarkerIsOnSeparateLine() " {{{
     let foldStartMarker = matchstr(&foldmarker, '^[^,]*')
     return match(getline(v:foldstart), '^\s*["#/\*]*\s*' . foldStartMarker . 'd*\s*["#/\*]*$', 'g') != -1
 endfunction
-"}}}
+" }}}
 
-function! s:FilterInfo(text) "{{{
+function! s:FilterInfo(text) " {{{
     let foldStartMarker = matchstr(&foldmarker, '^[^,]*')
     return substitute(a:text, '^\s*["#/\*]*\s*\|\s*["#/\*]*\s*' . foldStartMarker .'\d*\s*', '', 'g')
 endfunction
-"}}}
+" }}}
 
-function! s:FoldStartsOnBracket() "{{{
+function! s:FoldStartsOnBracket() " {{{
     return match(getline(v:foldstart), '^\s*{\s*$') != -1
 endfunction
-"}}}
+" }}}
 
-function! s:GetFoldInfo() "{{{
+function! s:GetFoldInfo() " {{{
   let info = ''
   " Check if multiline comments start with '/*' or '/**' on a separate line.
   if s:IsCommentBlock()
@@ -84,9 +84,9 @@ function! s:GetFoldInfo() "{{{
 
   return info
 endfunction
-"}}}
+" }}}
 
-function! s:FormatLinesCount() "{{{
+function! s:FormatLinesCount() " {{{
   let countText = ''
   let foldlen = v:foldend - v:foldstart + 1
   let percent = printf(" (%.1f", (foldlen * 1.0)/line('$') * 100) . "%)"
@@ -100,23 +100,23 @@ function! s:FormatLinesCount() "{{{
 
   return countText
 endfunction
-"}}}
+" }}}
 
-function! s:IndentFold() "{{{
+function! s:IndentFold() " {{{
     if g:AwesomeFoldTextIndent == 1
         return repeat(' ', indent(v:foldstart))
     else
         return ''
     endif
 endfunction
-"}}}
+" }}}
 
-function! s:FormatFoldLevel() "{{{
+function! s:FormatFoldLevel() " {{{
     return repeat(g:AwesomeFoldTextFoldLevelSymbol, v:foldlevel * g:AwesomeFoldTextFoldLevelScale)
 endfunction
-"}}}
+" }}}
 
-function! s:CutText(text) "{{{
+function! s:CutText(text) " {{{
     let maxwidth = winwidth(0) * 2 / 3
 
     if strlen(a:text) > maxwidth
@@ -125,17 +125,17 @@ function! s:CutText(text) "{{{
         return strpart(a:text, 0, maxwidth)
     endif
 endfunction
-"}}}
+" }}}
 
-function! s:FormatFirstPart() "{{{
+function! s:FormatFirstPart() " {{{
   let startText = s:IndentFold() . g:AwesomeFoldTextSymbol . s:GetFoldInfo()
   let startText = s:CutText(startText)
 
   return startText
 endfunction
-"}}}
+" }}}
 
-function! s:FormatSecondPart() "{{{
+function! s:FormatSecondPart() " {{{
   let linesCountText = s:FormatLinesCount()
   let foldLevelText = s:FormatFoldLevel()
 
@@ -143,12 +143,12 @@ function! s:FormatSecondPart() "{{{
 endfunction
 " }}}
 
-function! AwesomeFoldText() "{{{
+function! AwesomeFoldText() " {{{
   let firstPartText = s:FormatFirstPart()
   let secondPartText = s:FormatSecondPart()
   let fillLength = winwidth(0) - strwidth(firstPartText . secondPartText) - &foldcolumn - (&number ? &numberwidth : 0) - (s:GetSignsCount() ? 2 : 0)
   return firstPartText . repeat(g:AwesomeFoldTextFillChar, fillLength) . secondPartText
 endfunction
-"}}}
+" }}}
 
 set foldtext=AwesomeFoldText()
