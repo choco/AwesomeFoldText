@@ -20,7 +20,7 @@ if !exists('g:AwesomeFoldTextCountSurroundRight')
   let g:AwesomeFoldTextCountSurroundRight = ' |'
 endif
 if !exists('g:AwesomeFoldTextFoldLevelSymbol')
-  let g:AwesomeFoldTextFoldLevelSymbol = '+-'
+  let g:AwesomeFoldTextFoldLevelSymbol = '＋-'
 endif
 if !exists('g:AwesomeFoldTextFoldLevelScale')
   let g:AwesomeFoldTextFoldLevelScale = 1
